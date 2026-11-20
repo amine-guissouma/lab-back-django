@@ -1,0 +1,114 @@
+
+name: CD
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    name: Déployer sur la VM Deploy
+    runs-on: self-hosted
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v6
+
+      - name: Vérifier strictement la branche et la destination
+        id: deployment
+        shell: bash
+        run: bash scripts/validate-deployment.sh deploy
+
+      - name: Télécharger l'artefact backend
+        uses: actions/download-artifact@v4
+        with:
+          name: django-backend
+          path: artifact/
+
+      - name: Préparer les accès SSH
+        shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          KEY_FILE="$RUNNER_TEMP/deploy_key"
+          KNOWN_HOSTS_FILE="$RUNNER_TEMP/deploy_known_hosts"
+
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$KNOWN_HOSTS_FILE"
+          chmod 600 "$KNOWN_HOSTS_FILE"
+
+      - name: Transférer et déployer le backend
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          REMOTE_DIR: ${{ steps.deployment.outputs.remote_dir }}
+          DEPLOY_SERVICE: ${{ vars.DEPLOY_SERVICE }}
+        run: |
+          set -euo pipefail
+
+          KEY_FILE="$RUNNER_TEMP/deploy_key"
+          KNOWN_HOSTS_FILE="$RUNNER_TEMP/deploy_known_hosts"
+          ARCHIVE="backend-app.tar.gz"
+          REMOTE_ARCHIVE="/tmp/$ARCHIVE"
+
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$REMOTE_DIR"
+          test -n "$DEPLOY_SERVICE"
+          test -f "artifact/$ARCHIVE"
+
+          SSH_OPTIONS=(
+            -i "$KEY_FILE"
+            -o IdentitiesOnly=yes
+            -o BatchMode=yes
+            -o StrictHostKeyChecking=yes
+            -o "UserKnownHostsFile=$KNOWN_HOSTS_FILE"
+          )
+
+          # Transfert de l'artefact
+          scp "${SSH_OPTIONS[@]}" \
+            "artifact/$ARCHIVE" \
+            "$DEPLOY_USER@$DEPLOY_HOST:$REMOTE_ARCHIVE"
+
+          # Installation et redémarrage sur le serveur
+          ssh "${SSH_OPTIONS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash -s -- '$REMOTE_DIR' '$DEPLOY_SERVICE' '$REMOTE_ARCHIVE'" <<'REMOTE'
+          set -euo pipefail
+
+          REMOTE_DIR="$1"
+          DEPLOY_SERVICE="$2"
+          REMOTE_ARCHIVE="$3"
+
+          mkdir -p "$REMOTE_DIR"
+
+          tar -xzf "$REMOTE_ARCHIVE" -C "$REMOTE_DIR"
+
+          cd "$REMOTE_DIR"
+
+          # Environnement virtuel de production
+          python3 -m venv .venv
+
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+          # Opérations Django
+          .venv/bin/python manage.py migrate --noinput
+          .venv/bin/python manage.py collectstatic --noinput
+
+          # Redémarrage du backend
+          sudo systemctl restart "$DEPLOY_SERVICE"
+
+          rm -f "$REMOTE_ARCHIVE"
+          REMOTE
+
+      - name: Nettoyer les fichiers temporaires SSH
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/deploy_key"
+          rm -f "$RUNNER_TEMP/deploy_known_hosts"
