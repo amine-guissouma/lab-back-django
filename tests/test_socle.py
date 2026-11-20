@@ -2,8 +2,6 @@ from django.test import TestCase
 
 
 class SocleApiTests(TestCase):
-
-
     def test_lab(self):
         response = self.client.get("/api/lab")
 
@@ -11,7 +9,8 @@ class SocleApiTests(TestCase):
         self.assertEqual(
             response.json(),
             {
-                'lab': 'lab-back-django', 'experience': 'socle',
+                "lab": "lab-back-django",
+                "experience": "socle",
             },
         )
 
@@ -19,8 +18,6 @@ class SocleApiTests(TestCase):
         response = self.client.get("/api/unknown")
 
         self.assertEqual(response.status_code, 404)
-
-
 
     def test_lab_content_type(self):
         response = self.client.get("/api/lab")
