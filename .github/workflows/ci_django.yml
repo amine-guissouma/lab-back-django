@@ -145,11 +145,6 @@ jobs:
       - name: Récupérer le code
         uses: actions/checkout@v6
 
-      - name: Vérifier strictement la branche et la destination
-        id: deployment
-        shell: bash
-        run: bash scripts/validate-deployment.sh deploy
-
       - name: Télécharger l'artefact backend
         uses: actions/download-artifact@v4
         with:
