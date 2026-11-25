@@ -15,6 +15,11 @@ on:
   workflow_dispatch:
 
 jobs:
+
+  # ======================================================
+  # CI - VÉRIFICATION ET PRÉPARATION
+  # ======================================================
+
   ci:
     name: Vérification et préparation
     runs-on: self-hosted
@@ -32,14 +37,15 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: |
-            requirements.txt
-            requirements_dev.txt
+          cache-dependency-path: pyproject.toml
 
       - name: Installer les dépendances Django
+        shell: bash
         run: |
+          set -euo pipefail
+
           python -m pip install --upgrade pip
-          python -m pip install -r requirements_dev.txt
+          python -m pip install -e ".[dev]"
 
       - name: Vérifier Django
         run: python manage.py check
@@ -48,13 +54,19 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
 
       - name: Exécuter les tests
-        run: python manage.py test
+        run: pytest
 
       - name: Vérifier Ruff
         run: ruff check .
 
+      - name: Vérifier le formatage Ruff
+        run: ruff format --check .
+
+      - name: Vérifier les types avec Mypy
+        run: mypy .
+
       # --------------------------------------------------
-      # ENVIRONNEMENT  PYTHON 3.14
+      # ENVIRONNEMENT LAB-TOOLKIT - PYTHON 3.14
       # --------------------------------------------------
 
       - name: Installer Python 3.14
@@ -70,9 +82,26 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pipx
 
+          # Lecture du dépôt lab-toolkit dans pyproject.toml.
+          LAB_TOOLKIT_REPOSITORY="$(python -c '
+          import pathlib
+          import tomllib
+
+          with pathlib.Path("pyproject.toml").open("rb") as file:
+              config = tomllib.load(file)
+
+          external_tools = config["tool"]["lab"]["external-tools"]
+
+          assert external_tools["installer"] == "pipx"
+          assert external_tools["python"] == ">=3.14"
+
+          print(external_tools["lab-toolkit"])
+          ')"
+
+          # Installation isolée avec Python 3.14.
           python -m pipx install \
             --python "$(python -c 'import sys; print(sys.executable)')" \
-            lab-toolkit
+            "$LAB_TOOLKIT_REPOSITORY"
 
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
@@ -181,12 +210,12 @@ jobs:
             -o "UserKnownHostsFile=$KNOWN_HOSTS_FILE"
           )
 
-          # Transfert de l'artefact
+          # Transfert de l'artefact.
           scp "${SSH_OPTIONS[@]}" \
             "artifact/$ARCHIVE" \
             "$DEPLOY_USER@$DEPLOY_HOST:$REMOTE_ARCHIVE"
 
-          # Installation et redémarrage sur le serveur
+          # Installation et redémarrage sur le serveur.
           ssh "${SSH_OPTIONS[@]}" "$DEPLOY_USER@$DEPLOY_HOST" \
             "bash -s -- '$REMOTE_DIR' '$DEPLOY_SERVICE' '$REMOTE_ARCHIVE'" <<'REMOTE'
           set -euo pipefail
@@ -201,17 +230,38 @@ jobs:
 
           cd "$REMOTE_DIR"
 
-          # Environnement virtuel de production
+          # Environnement virtuel de production.
           python3 -m venv .venv
 
           .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/pip install -r requirements.txt
 
-          # Opérations Django
+          # Installation des dépendances obligatoires
+          # directement depuis pyproject.toml.
+          .venv/bin/python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
+          import tomllib
+
+          with pathlib.Path("pyproject.toml").open("rb") as file:
+              config = tomllib.load(file)
+
+          dependencies = config["project"].get("dependencies", [])
+
+          subprocess.check_call([
+              sys.executable,
+              "-m",
+              "pip",
+              "install",
+              *dependencies,
+          ])
+          PY
+
+          # Opérations Django.
           .venv/bin/python manage.py migrate --noinput
           .venv/bin/python manage.py collectstatic --noinput
 
-          # Redémarrage du service Django
+          # Redémarrage du service Django.
           sudo systemctl restart "$DEPLOY_SERVICE"
 
           rm -f "$REMOTE_ARCHIVE"

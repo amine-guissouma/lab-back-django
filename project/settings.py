@@ -1,9 +1,3 @@
-from config.config_lab import (
-    BACKEND_HOST,
-    FRONTEND_HOST,
-    FRONTEND_PORT,
-)
-
 """
 Django settings for project project.
 
@@ -17,6 +11,12 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+
+from config.config_lab import (
+    BACKEND_HOST,
+    FRONTEND_HOST,
+    FRONTEND_PORT,
+)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

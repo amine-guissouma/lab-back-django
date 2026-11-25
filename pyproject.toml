@@ -1,0 +1,214 @@
+
+# ============================================================
+# LAB BACK DJANGO
+# Configuration du projet et des outils Python
+# ============================================================
+
+
+# ============================================================
+# PROJECT - MÉTADONNÉES DU PROJET
+# ============================================================
+
+[project]
+
+name = "lab-back-django"                                # Nom officiel du projet Python, utilisé pour identifier le package.
+version = "0.1.0.dev0"                                  # Version actuelle du socle backend Django ; dev0 indique une version de développement.
+description = "Socle backend Django du projet Lab"      # Description courte du projet.
+requires-python = ">=3.12,<3.13"                        # Version minimale et maximale de Python autorisée : Python 3.12 uniquement.
+
+license = "MIT"                                         # Licence open source sous laquelle le projet est distribué.
+license-files = ["LICENSE"]                             # Fichier contenant le texte complet de la licence.
+
+authors = [
+    { name = "Amine Guissouma" },                       # Auteur du projet.
+]
+keywords = [
+    "django",                                           # Framework web utilisé pour construire le backend.
+    "backend",                                          # Partie serveur de l'application.
+    "api",                                              # Interfaces permettant la communication avec le frontend ou d'autres services.
+    "python",                                           # Langage de programmation du projet.
+    "lab",                                              # Projet destiné à l'environnement laboratoire.
+]
+
+dependencies = [
+"asgiref==3.13.0",
+"Django==6.1.3",
+"django-cors-headers==4.9.0",
+"djangorestframework==3.18.3",
+"sqlparse==0.6.1",
+"tzdata==2026.6"
+]                                       # Dépendances obligatoires déclarées dans les métadonnées ;
+
+# ============================================================
+# PROJECT URLS - LIENS ASSOCIÉS AU PROJET
+# ============================================================
+
+[project.urls]
+
+Repository = "https://github.com/amine-guissouma/lab-back-django" # Adresse du dépôt GitHub contenant le code source.
+Index = "https://github.com/amine-guissouma/tech-lab-index"       # Adresse de l'index référençant les projets du laboratoire.
+
+# ============================================================
+# OPTIONAL DEPENDENCIES - DÉPENDANCES OPTIONNELLES
+# ============================================================
+
+[project.optional-dependencies]
+
+dev = [
+    "pytest>=8.0",                                                          # Framework utilisé pour exécuter les tests automatisés.
+    "pytest-django",                                                        # Intégration de Pytest avec Django.
+    "ruff==0.17.4",                                                         # Outil de vérification et de formatage du code Python.
+    "mypy",                                                                 # Outil de vérification statique des types Python.
+    "django-stubs",                                                         # Fournit les annotations de types nécessaires à Mypy pour Django.
+    "pre-commit>=4.7,<5",                                                   # Outil qui exécute automatiquement des contrôles avant chaque commit.
+    "pre-commit-hooks==6.0.0",                                              # Collection de hooks standards pour Pre-commit.
+]
+
+# ============================================================
+# EXTERNAL TOOLS - OUTILS CLI EXTERNES
+# ============================================================
+
+[tool.lab.external-tools]
+
+lab-toolkit = "git+https://github.com/amine-guissouma/lab-toolkit.git"
+python = ">=3.14"
+installer = "pipx"
+
+# ============================================================
+# COVERAGE - MESURE DE LA COUVERTURE DES TESTS
+# ============================================================
+
+[tool.coverage.run]
+
+branch = true                                             # Mesure également la couverture des différentes branches conditionnelles du code.
+
+source = [
+    ".",                                                 # Limite la mesure de couverture au code source du projet.
+]
+# ============================================================
+# COVERAGE REPORT - CONFIGURATION DU RAPPORT
+# ============================================================
+
+[tool.coverage.report]
+
+show_missing = true                                      # Affiche les lignes de code qui ne sont pas couvertes par les tests.
+skip_covered = false                                    # Conserve dans le rapport les fichiers et lignes déjà couverts.
+
+
+# ============================================================
+# RUFF - QUALITÉ ET FORMATAGE DU CODE
+# ============================================================
+
+[tool.ruff]
+
+target-version = "py312"                                        # Version de Python ciblée par Ruff : Python 3.12.
+line-length = 88                                                # Longueur maximale recommandée pour les lignes de code.
+
+exclude = [
+    ".git",                                                     # Exclut les fichiers internes de Git.
+    ".venv",                                                    # Exclut l'environnement virtuel local.
+    "venv",                                                     # Exclut les autres environnements virtuels nommés venv.
+    "__pycache__",                                              # Exclut les répertoires contenant le cache Python.
+    "migrations",                                               # Exclut les migrations Django générées.
+    "static",                                                   # Exclut les fichiers statiques du projet.
+    "staticfiles",                                              # Exclut les fichiers statiques collectés par Django.
+]
+
+
+# ============================================================
+# RUFF LINT - RÈGLES DE VÉRIFICATION DU CODE
+# ============================================================
+
+[tool.ruff.lint]
+
+select = [
+    "E",                                                        # Vérifie les erreurs de style Python selon pycodestyle.
+    "F",                                                        # Détecte les erreurs selon Pyflakes : imports inutilisés, variables, etc.
+    "I",                                                        # Vérifie et organise l'ordre des imports Python.
+    "B",                                                        # Détecte les bugs potentiels grâce aux règles flake8-bugbear.
+    "UP",                                                       # Signale les syntaxes Python pouvant être modernisées.
+    "EXE",                                                      # Vérifie certaines règles liées à l'exécutabilité des scripts.
+]
+
+ignore = [
+    "E501",                                                     # Ignore les lignes dépassant la longueur maximale ; évite de bloquer sur les chaînes longues.
+]
+
+
+
+# ============================================================
+# RUFF LINT - EXCEPTIONS PAR FICHIER
+# ============================================================
+
+[tool.ruff.lint.per-file-ignores]
+
+"manage.py" = [
+"EXE001",                                                       # Ignore la vérification du caractère exécutable de manage.py, notamment pour Windows.
+]
+
+
+# ============================================================
+# RUFF FORMAT - RÈGLES DE FORMATAGE
+# ============================================================
+
+[tool.ruff.format]
+
+quote-style = "double"                                          # Utilise les guillemets doubles pour les chaînes de caractères.
+indent-style = "space"                                          # Utilise des espaces pour l'indentation plutôt que des tabulations.
+line-ending = "auto"                                            # Conserve automatiquement le type de fin de ligne adapté au fichier.
+
+
+# ============================================================
+# PYTEST - CONFIGURATION DES TESTS AUTOMATISÉS
+# ============================================================
+
+[tool.pytest.ini_options]
+
+addopts = "-ra"                                                 # Affiche un résumé détaillé des résultats des tests, notamment les tests ignorés et les erreurs.
+
+DJANGO_SETTINGS_MODULE = "project.settings" # Indique à pytest-django le module contenant les paramètres Django.
+
+python_files = [
+    "test_*.py",                                                # Détecte les fichiers commençant par test_.
+    "*_test.py",                                                # Détecte les fichiers se terminant par _test.py.
+    "tests.py",                                                 # Détecte les fichiers nommés tests.py.
+]
+
+
+# ============================================================
+# MYPY - VÉRIFICATION STATIQUE DES TYPES
+# ============================================================
+
+[tool.mypy]
+
+python_version = "3.12"                                         # Version de Python utilisée pour interpréter et vérifier les annotations de types.
+
+plugins = [
+    "mypy_django_plugin.main",                  # Active le plugin Django de django-stubs pour améliorer l'analyse des types Django.
+]
+
+warn_unused_configs = true                                      # Signale les options de configuration Mypy qui ne sont pas utilisées.
+warn_redundant_casts = true                                     # Signale les conversions de types inutiles.
+warn_unused_ignores = true                                      # Signale les commentaires type: ignore devenus inutiles.
+
+check_untyped_defs = true                                       # Vérifie également le contenu des fonctions qui ne possèdent pas d'annotations de types.
+disallow_untyped_defs = false                                   # N'impose pas encore l'annotation de types sur toutes les fonctions.
+
+show_error_codes = true                                         # Affiche les codes associés aux erreurs Mypy.
+pretty = true                                                   # Améliore la présentation et la lisibilité des messages d'erreur.
+
+exclude = [
+    "migrations/",                                              # Exclut les migrations Django générées de l'analyse des types.
+    ".venv/",                                                   # Exclut l'environnement virtuel local.
+    "venv/",                                                    # Exclut les autres environnements virtuels nommés venv.
+]
+
+
+# ============================================================
+# MYPY - DJANGO STUBS
+# CONFIGURATION DU PLUGIN DJANGO
+# ============================================================
+
+[tool.django-stubs]
+
+django_settings_module = "project.settings"                     # Indique au plugin Django de Mypy le module contenant les paramètres du projet.
