@@ -1,8 +1,17 @@
-
 # ============================================================
 # LAB BACK DJANGO
 # Configuration du projet et des outils Python
 # ============================================================
+
+
+# ============================================================
+# BUILD SYSTEM - OUTIL DE CONSTRUCTION
+# ============================================================
+
+[build-system]
+
+requires = ["setuptools>=77"]                           # setuptools >= 77 est requis pour les champs license et license-files au format SPDX.
+build-backend = "setuptools.build_meta"                 # Backend de construction utilisé par pip pour lire les métadonnées du projet.
 
 
 # ============================================================
@@ -63,6 +72,14 @@ dev = [
     "pre-commit>=4.7,<5",                                                   # Outil qui exécute automatiquement des contrôles avant chaque commit.
     "pre-commit-hooks==6.0.0",                                              # Collection de hooks standards pour Pre-commit.
 ]
+
+# ============================================================
+# SETUPTOOLS - CONSTRUCTION DU PACKAGE
+# ============================================================
+
+[tool.setuptools]
+
+packages = []                                           # Ne package aucun dossier (core, config, project) : le projet est une application Django lancée depuis la racine, seules les dépendances sont installées.
 
 # ============================================================
 # EXTERNAL TOOLS - OUTILS CLI EXTERNES
