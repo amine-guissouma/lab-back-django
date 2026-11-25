@@ -44,6 +44,7 @@ dependencies = [
 "Django==6.1.3",
 "django-cors-headers==4.9.0",
 "djangorestframework==3.18.3",
+
 "sqlparse==0.6.1",
 "tzdata==2026.6"
 ]                                       # Dépendances obligatoires déclarées dans les métadonnées ;
@@ -69,6 +70,7 @@ dev = [
     "ruff==0.17.4",                                                         # Outil de vérification et de formatage du code Python.
     "mypy",                                                                 # Outil de vérification statique des types Python.
     "django-stubs",                                                         # Fournit les annotations de types nécessaires à Mypy pour Django.
+    "djangorestframework-stubs",
     "pre-commit>=4.7,<5",                                                   # Outil qui exécute automatiquement des contrôles avant chaque commit.
     "pre-commit-hooks==6.0.0",                                              # Collection de hooks standards pour Pre-commit.
 ]
