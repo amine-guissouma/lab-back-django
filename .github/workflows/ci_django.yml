@@ -32,9 +32,6 @@ jobs:
             requirements.txt
             requirements_dev.txt
 
-      - name: Vérifier la configuration de déploiement
-        shell: bash
-        run: bash scripts/validate-deployment.sh check
 
       - name: Installer les dépendances
         run: |
@@ -52,6 +49,9 @@ jobs:
 
       - name: Vérifier Ruff
         run: ruff check .
+
+      - name: Vérifier parametre
+        run: lab-toolkit deployment validate
 
       - name: Préparer l'artefact backend
         shell: bash
